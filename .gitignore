@@ -30,7 +30,7 @@ dist/
 # Variáveis de ambiente
 
 .env
-.env.*
+app/.env.exemple
 
 # Banco SQLite (se usar)
 
