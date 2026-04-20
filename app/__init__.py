@@ -16,7 +16,9 @@ from app.config import Config
 print("INIT EXECUTADO")
 def register_routes(app):
     from app.routes.product_routes import produto_bp
+    from app.routes.category_routes import category_bp
     app.register_blueprint(produto_bp)
+    app.register_blueprint(category_bp)
 
 def create_app():
     app = Flask(__name__)
