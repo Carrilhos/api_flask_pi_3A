@@ -8,6 +8,7 @@ from app.repositories.anuncio_repository import (
     update_estoque_anuncio,
     delete_anuncio,
 )
+from app.services.anuncio_service import criar_anuncio_service
 
 # ---------------------------------------------------------------------------
 # Blueprint
@@ -65,8 +66,6 @@ def buscar_anuncio(id_anuncio: int):
 # ---------------------------------------------------------------------------
 # POST /anuncios  →  cria um novo anúncio
 # ---------------------------------------------------------------------------
-@anuncio_bp.route("/", methods=["POST"])
-def criar_anuncio():
     """
     Body JSON esperado:
     {
@@ -78,44 +77,32 @@ def criar_anuncio():
         "estoque":     5
     }
     """
+@anuncio_bp.route("/", methods=["POST"])
+def criar_anuncio():
     try:
-        data = request.get_json()
+        data = request.form
+        imagens = request.files.getlist("imagens")
+        imagem_principal = request.form.get("imagem_principal", 0)
 
         if not data:
-            return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
+            return jsonify({"erro": "Form data inválido."}), 400
 
-        ok, erro = _campos_obrigatorios(data, ["id_vendedor", "id_produto", "titulo", "preco"])
-        if not ok:
-            return jsonify({"erro": erro}), 400
-
-        try:
-            preco = float(data["preco"])
-            if preco < 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return jsonify({"erro": "preco deve ser um número positivo."}), 400
-
-        estoque = data.get("estoque", 0)
-        try:
-            estoque = int(estoque)
-            if estoque < 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return jsonify({"erro": "estoque deve ser um número inteiro não negativo."}), 400
-
-        anuncio = create_anuncio(
-            id_vendedor = data["id_vendedor"],
-            id_produto  = data["id_produto"],
-            titulo      = str(data["titulo"])[:255],
-            descricao   = data.get("descricao"),
-            preco       = round(preco, 2),
-            estoque     = estoque,
+        anuncio = criar_anuncio_service(
+            data=data,
+            imagens=imagens,
+            imagem_principal=imagem_principal
         )
 
         return jsonify(anuncio), 201
 
+    except ValueError as e:
+        return jsonify({"erro": str(e)}), 400
+
     except Exception as e:
-        return jsonify({"erro": "Erro ao criar anúncio.", "detalhe": str(e)}), 500
+        return jsonify({
+            "erro": "Erro ao criar anúncio.",
+            "detalhe": str(e)
+        }), 500
 
 
 # ---------------------------------------------------------------------------
