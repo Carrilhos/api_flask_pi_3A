@@ -21,8 +21,6 @@ def find_all_produtos():
 
     rows = cursor.fetchall()
 
-    print(rows)
-
     cursor.close()
     conn.close()
 
