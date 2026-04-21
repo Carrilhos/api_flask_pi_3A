@@ -29,3 +29,12 @@ def create_app():
     print(app.url_map)
 
     return app
+
+def register_routes(app):
+    from app.routes.product_routes import produto_bp
+    from app.routes.pedido_routes import pedido_bp
+    from app.routes.anuncio_routes import anuncio_bp
+
+    app.register_blueprint(produto_bp)
+    app.register_blueprint(pedido_bp)
+    app.register_blueprint(anuncio_bp)

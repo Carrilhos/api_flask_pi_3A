@@ -9,6 +9,7 @@ def find_all_anuncios():
         """
         SELECT  id_anuncio,
                 id_vendedor,
+                id_produto,
                 titulo,
                 descricao,
                 preco,
@@ -32,12 +33,13 @@ def find_all_anuncios():
             {
                 "id_anuncio":       row[0],
                 "id_vendedor":      row[1],
-                "titulo":           row[2],
-                "descricao":        row[3],
-                "preco":            row[4],
-                "estoque":          row[5],
-                "data_criacao":     row[6],
-                "data_atualizacao": row[7],
+                "id_produto":       row[2],
+                "titulo":           row[3],
+                "descricao":        row[4],
+                "preco":            row[5],
+                "estoque":          row[6],
+                "data_criacao":     row[7],
+                "data_atualizacao": row[8],
             }
         )
 
@@ -52,6 +54,7 @@ def find_anuncios_by_vendedor(id_vendedor):
         """
         SELECT  id_anuncio,
                 id_vendedor,
+                id_produto,
                 titulo,
                 descricao,
                 preco,
@@ -77,12 +80,13 @@ def find_anuncios_by_vendedor(id_vendedor):
             {
                 "id_anuncio":       row[0],
                 "id_vendedor":      row[1],
-                "titulo":           row[2],
-                "descricao":        row[3],
-                "preco":            row[4],
-                "estoque":          row[5],
-                "data_criacao":     row[6],
-                "data_atualizacao": row[7],
+                "id_produto":       row[2],
+                "titulo":           row[3],
+                "descricao":        row[4],
+                "preco":            row[5],
+                "estoque":          row[6],
+                "data_criacao":     row[7],
+                "data_atualizacao": row[8],
             }
         )
 
@@ -97,6 +101,7 @@ def find_anuncio_by_id(id_anuncio):
         """
         SELECT  id_anuncio,
                 id_vendedor,
+                id_produto,
                 titulo,
                 descricao,
                 preco,
@@ -120,16 +125,17 @@ def find_anuncio_by_id(id_anuncio):
     return {
         "id_anuncio":       row[0],
         "id_vendedor":      row[1],
-        "titulo":           row[2],
-        "descricao":        row[3],
-        "preco":            row[4],
-        "estoque":          row[5],
-        "data_criacao":     row[6],
-        "data_atualizacao": row[7],
+        "id_produto":       row[2],
+        "titulo":           row[3],
+        "descricao":        row[4],
+        "preco":            row[5],
+        "estoque":          row[6],
+        "data_criacao":     row[7],
+        "data_atualizacao": row[8],
     }
 
 
-def create_anuncio(id_vendedor, titulo, descricao, preco, estoque):
+def create_anuncio(id_vendedor, id_produto, titulo, descricao, preco, estoque):
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -137,14 +143,16 @@ def create_anuncio(id_vendedor, titulo, descricao, preco, estoque):
         """
         INSERT INTO anuncio (
             id_vendedor,
+            id_produto,
             titulo,
             descricao,
             preco,
             estoque
         )
-        VALUES (%s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id_anuncio,
                   id_vendedor,
+                  id_produto,
                   titulo,
                   descricao,
                   preco,
@@ -152,7 +160,7 @@ def create_anuncio(id_vendedor, titulo, descricao, preco, estoque):
                   data_criacao,
                   data_atualizacao
         """,
-        (id_vendedor, titulo, descricao, preco, estoque),
+        (id_vendedor, id_produto, titulo, descricao, preco, estoque),
     )
 
     row = cursor.fetchone()
@@ -164,29 +172,32 @@ def create_anuncio(id_vendedor, titulo, descricao, preco, estoque):
     return {
         "id_anuncio":       row[0],
         "id_vendedor":      row[1],
-        "titulo":           row[2],
-        "descricao":        row[3],
-        "preco":            row[4],
-        "estoque":          row[5],
-        "data_criacao":     row[6],
-        "data_atualizacao": row[7],
+        "id_produto":       row[2],
+        "titulo":           row[3],
+        "descricao":        row[4],
+        "preco":            row[5],
+        "estoque":          row[6],
+        "data_criacao":     row[7],
+        "data_atualizacao": row[8],
     }
 
 
-def update_anuncio(id_anuncio, titulo, descricao, preco, estoque):
+def update_anuncio(id_anuncio, id_produto, titulo, descricao, preco, estoque):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
         """
         UPDATE anuncio
-        SET titulo    = %s,
-            descricao = %s,
-            preco     = %s,
-            estoque   = %s
+        SET id_produto = %s,
+            titulo     = %s,
+            descricao  = %s,
+            preco      = %s,
+            estoque    = %s
         WHERE id_anuncio = %s
         RETURNING id_anuncio,
                   id_vendedor,
+                  id_produto,
                   titulo,
                   descricao,
                   preco,
@@ -194,7 +205,7 @@ def update_anuncio(id_anuncio, titulo, descricao, preco, estoque):
                   data_criacao,
                   data_atualizacao
         """,
-        (titulo, descricao, preco, estoque, id_anuncio),
+        (id_produto, titulo, descricao, preco, estoque, id_anuncio),
     )
 
     row = cursor.fetchone()
@@ -209,12 +220,13 @@ def update_anuncio(id_anuncio, titulo, descricao, preco, estoque):
     return {
         "id_anuncio":       row[0],
         "id_vendedor":      row[1],
-        "titulo":           row[2],
-        "descricao":        row[3],
-        "preco":            row[4],
-        "estoque":          row[5],
-        "data_criacao":     row[6],
-        "data_atualizacao": row[7],
+        "id_produto":       row[2],
+        "titulo":           row[3],
+        "descricao":        row[4],
+        "preco":            row[5],
+        "estoque":          row[6],
+        "data_criacao":     row[7],
+        "data_atualizacao": row[8],
     }
 
 
@@ -229,6 +241,7 @@ def update_estoque_anuncio(id_anuncio, estoque):
         WHERE id_anuncio = %s
         RETURNING id_anuncio,
                   id_vendedor,
+                  id_produto,
                   estoque,
                   data_atualizacao
         """,
@@ -247,8 +260,9 @@ def update_estoque_anuncio(id_anuncio, estoque):
     return {
         "id_anuncio":       row[0],
         "id_vendedor":      row[1],
-        "estoque":          row[2],
-        "data_atualizacao": row[3],
+        "id_produto":       row[2],
+        "estoque":          row[3],
+        "data_atualizacao": row[4],
     }
 
 
