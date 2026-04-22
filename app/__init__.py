@@ -17,8 +17,16 @@ print("INIT EXECUTADO")
 def register_routes(app):
     from app.routes.product_routes import produto_bp
     from app.routes.category_routes import category_bp
+    from app.routes.pedido_routes import pedido_bp
+    from app.routes.anuncio_routes import anuncio_bp
+    from app.routes.usuario_routes import usuario_bp
+    from app.routes.endereco_routes import endereco_bp
     app.register_blueprint(produto_bp)
     app.register_blueprint(category_bp)
+    app.register_blueprint(pedido_bp)
+    app.register_blueprint(anuncio_bp)
+    app.register_blueprint(usuario_bp)
+    app.register_blueprint(endereco_bp)
 
 def create_app():
     app = Flask(__name__)
@@ -29,15 +37,3 @@ def create_app():
     print(app.url_map)
 
     return app
-
-def register_routes(app):
-    from app.routes.product_routes import produto_bp
-    from app.routes.pedido_routes import pedido_bp
-    from app.routes.anuncio_routes import anuncio_bp
-
-    app.register_blueprint(produto_bp)
-    app.register_blueprint(pedido_bp)
-    app.register_blueprint(anuncio_bp)
-
-    from app.routes.usuario_routes import usuario_bp
-    app.register_blueprint(usuario_bp)
