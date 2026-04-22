@@ -36,3 +36,6 @@ def register_routes(app):
     app.register_blueprint(produto_bp)
     app.register_blueprint(pedido_bp)
     app.register_blueprint(anuncio_bp)
+
+    from app.routes.usuario_routes import usuario_bp
+    app.register_blueprint(usuario_bp)
