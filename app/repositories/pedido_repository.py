@@ -58,21 +58,26 @@ def find_pedidos_by_cliente(id_cliente):
 
     cursor.execute(
         """
-        SELECT  id_pedido,
-                id_cliente,
-                valor_total,
-                logradouro_snap,
-                numero_snap,
-                cidade_snap,
-                estado_snap,
-                cep_snap,
-                status,
-                data_pedido,
-                data_criacao,
-                data_atualizacao
-        FROM pedido
-        WHERE id_cliente = %s
-        ORDER BY data_pedido DESC
+        SELECT  p.id_pedido,
+                p.id_cliente,
+                p.valor_total,
+                p.logradouro_snap,
+                p.numero_snap,
+                p.cidade_snap,
+                p.estado_snap,
+                p.cep_snap,
+                p.status,
+                p.data_pedido,
+                p.data_criacao,
+                p.data_atualizacao,
+                i.id_pedido_item,
+                i.id_anuncio,
+                i.quantidade,
+                i.preco
+        FROM pedido p
+        LEFT JOIN pedido_item i ON p.id_pedido = i.id_pedido
+        WHERE p.id_cliente = %s
+        ORDER BY p.data_pedido DESC
         """,
         (id_cliente,),
     )
@@ -82,11 +87,14 @@ def find_pedidos_by_cliente(id_cliente):
     cursor.close()
     conn.close()
 
-    pedidos = []
+    pedidos_dict = {}
 
     for row in rows:
-        pedidos.append(
-            {
+        id_pedido = row[0]
+
+        # Cria o pedido no dicionário se ele ainda não existir
+        if id_pedido not in pedidos_dict:
+            pedidos_dict[id_pedido] = {
                 "id_pedido":        row[0],
                 "id_cliente":       row[1],
                 "valor_total":      row[2],
@@ -99,12 +107,21 @@ def find_pedidos_by_cliente(id_cliente):
                 "data_pedido":      row[9],
                 "data_criacao":     row[10],
                 "data_atualizacao": row[11],
+                "itens":            []  # Lista vazia pronta para receber os itens
             }
-        )
 
-    return pedidos
-
-
+        # Se existir um pedido_item atrelado, adiciona na lista
+        if row[12] is not None:
+            pedidos_dict[id_pedido]["itens"].append({
+                "id_pedido_item": row[12],
+                "id_anuncio":     row[13],
+                "quantidade":     row[14],
+                "preco":          row[15],
+            })
+            
+    # Retorna os valores do dicionário como uma lista padrão
+    return list(pedidos_dict.values())
+    
 def find_pedido_by_id(id_pedido):
     conn = get_connection()
     cursor = conn.cursor()
