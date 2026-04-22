@@ -34,7 +34,9 @@ def register_routes(app):
     from app.routes.product_routes import produto_bp
     from app.routes.pedido_routes import pedido_bp
     from app.routes.anuncio_routes import anuncio_bp
+    from app.routes.category_routes import category_bp  
 
     app.register_blueprint(produto_bp)
     app.register_blueprint(pedido_bp)
     app.register_blueprint(anuncio_bp)
+    app.register_blueprint(category_bp)                
