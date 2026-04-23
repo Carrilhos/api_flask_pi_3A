@@ -12,19 +12,16 @@ from app.config import Config
 #mas livrai-nos do Mal.
 #Amém.
 
-#Garantia que vai funcionar
 print("INIT EXECUTADO")
 
 def register_routes(app):
     from app.routes.product_routes import produto_bp
-    from app.routes.category_routes import category_bp
     from app.routes.pedido_routes import pedido_bp
     from app.routes.anuncio_routes import anuncio_bp
-    from app.routes.usuario_routes import usuario_bp # Importa aqui dentro
-    from app.routes.endereco_routes import endereco_bp
-    
+    from app.routes.usuario_routes import usuario_bp
+    from app.routes.usuario_endereco_routes import endereco_bp
+
     app.register_blueprint(produto_bp)
-    app.register_blueprint(category_bp)
     app.register_blueprint(pedido_bp)
     app.register_blueprint(anuncio_bp)
     app.register_blueprint(usuario_bp)
