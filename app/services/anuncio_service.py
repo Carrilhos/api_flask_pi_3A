@@ -1,4 +1,10 @@
-from app.repositories.anuncio_repository import create_anuncio
+from app.repositories.anuncio_repository import (
+    create_anuncio,
+    get_dados_basicos_anuncio_produto,
+    get_imagens_por_anuncio,
+    get_atributos_por_produto
+)
+
 from app.repositories.produto_imagem_repository import inserir_imagem
 from app.services.upload_service import upload_imagem_supabase
 
@@ -96,3 +102,62 @@ def criar_anuncio_service(data, imagens=None, imagem_principal=0):
     anuncio["imagens"] = imagens_salvas
 
     return anuncio
+
+def obter_anuncio_completo(id_anuncio):
+    # Busca os dados brutos no Repository
+    row_anuncio = get_dados_basicos_anuncio_produto(id_anuncio)
+    
+    if not row_anuncio:
+        return None
+
+    # Monta o esqueleto principal
+    anuncio_dict = {
+        "id_anuncio": row_anuncio[0],
+        "titulo": row_anuncio[1],
+        "descricao": row_anuncio[2],
+        "preco": float(row_anuncio[3]) if row_anuncio[3] else 0.0,
+        "estoque": row_anuncio[4],
+        "imagem_principal": None,
+        "produto": {
+            "id_produto": row_anuncio[5],
+            "nome": row_anuncio[6],
+            "marca": row_anuncio[7],
+            "modelo": row_anuncio[8],
+            "fabricante": row_anuncio[9],
+            "id_categoria": row_anuncio[10]
+        },
+        "imagens": [],
+        "atributos": []
+    }
+    
+    id_produto = row_anuncio[5]
+
+    # Busca e processa as imagens
+    rows_imagens = get_imagens_por_anuncio(id_anuncio)
+    for img in rows_imagens:
+        url_imagem = img[0]
+        is_principal = img[1]
+        
+        anuncio_dict["imagens"].append(url_imagem)
+        if is_principal:
+            anuncio_dict["imagem_principal"] = url_imagem
+
+    # Se não tem imagem principal, pega a primeira
+    if not anuncio_dict["imagem_principal"] and anuncio_dict["imagens"]:
+        anuncio_dict["imagem_principal"] = anuncio_dict["imagens"][0]
+
+    # Busca e processa os atributos
+    if id_produto:
+        rows_atributos = get_atributos_por_produto(id_produto)
+        for attr in rows_atributos:
+            nome_attr = attr[0]
+            val_str = attr[1]
+            val_num = attr[2]
+            val_bool = attr[3]
+            
+            # descobrir qual valor está preenchido
+            valor_final = val_str if val_str is not None else (val_num if val_num is not None else val_bool)
+            
+            anuncio_dict["atributos"].append({ nome_attr: valor_final })
+
+    return anuncio_dict

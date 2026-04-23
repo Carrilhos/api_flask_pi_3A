@@ -286,3 +286,42 @@ def delete_anuncio(id_anuncio):
     conn.close()
 
     return row is not None
+
+def get_dados_basicos_anuncio_produto(id_anuncio):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 
+            a.id_anuncio, a.titulo, a.descricao, a.preco, a.estoque,
+            p.id_produto, p.nome as produto_nome, p.marca, p.modelo, p.fabricante, p.id_categoria
+        FROM anuncio a
+        LEFT JOIN produto p ON a.id_produto = p.id_produto
+        WHERE a.id_anuncio = %s
+    """, (id_anuncio,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return row
+
+def get_imagens_por_anuncio(id_anuncio):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url, principal FROM produto_imagem WHERE id_anuncio = %s", (id_anuncio,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+def get_atributos_por_produto(id_produto):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT attr.nome, pa.valor_string, pa.valor_number, pa.valor_boolean
+        FROM produto_atributo pa
+        JOIN atributo attr ON pa.id_atributo = attr.id_atributo
+        WHERE pa.id_produto = %s
+    """, (id_produto,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows

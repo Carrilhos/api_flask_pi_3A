@@ -32,6 +32,8 @@ def register_routes(app):
 
 def create_app():
     app = Flask(__name__)
+    # Diz para o Flask parar de ordenar as chaves do JSON em ordem alfabética
+    app.json.sort_keys = False
     app.config.from_object(Config)
     
     app.config['SECRET_KEY'] = 'projeto_pi_3a_secret_key' 
