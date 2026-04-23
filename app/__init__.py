@@ -1,5 +1,6 @@
 from flask import Flask
 from app.config import Config
+from app.routes.usuario_routes import usuario_bp
 
 #Pai nosso que estais nos Céus,
 #santificado seja o vosso Nome,

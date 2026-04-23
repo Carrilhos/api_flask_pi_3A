@@ -135,7 +135,8 @@ def find_usuario_by_email(email):
                 email,
                 tipo_usuario,
                 data_criacao,
-                data_atualizacao
+                data_atualizacao,
+                senha
         FROM usuarios
         WHERE email = %s
         """,
@@ -143,7 +144,6 @@ def find_usuario_by_email(email):
     )
 
     row = cursor.fetchone()
-
     cursor.close()
     conn.close()
 
@@ -158,31 +158,21 @@ def find_usuario_by_email(email):
         "tipo_usuario":     row[4],
         "data_criacao":     row[5],
         "data_atualizacao": row[6],
+        "senha":            row[7],
     }
 
 
-def create_usuario(nome, sobrenome, email, tipo_usuario):
+def create_usuario(nome, sobrenome, email, tipo_usuario, senha):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        INSERT INTO usuarios (
-            nome,
-            sobrenome,
-            email,
-            tipo_usuario
-        )
-        VALUES (%s, %s, %s, %s)
-        RETURNING id_usuario,
-                  nome,
-                  sobrenome,
-                  email,
-                  tipo_usuario,
-                  data_criacao,
-                  data_atualizacao
+        INSERT INTO usuarios (nome, sobrenome, email, tipo_usuario, senha) -- <--- E AQUI
+        VALUES (%s, %s, %s, %s, %s) -
+        RETURNING id_usuario, nome, sobrenome, email, tipo_usuario, data_criacao, data_atualizacao
         """,
-        (nome, sobrenome, email, tipo_usuario),
+        (nome, sobrenome, email, tipo_usuario, senha),
     )
 
     row = cursor.fetchone()
