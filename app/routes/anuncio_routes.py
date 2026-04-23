@@ -1,3 +1,4 @@
+from app.repositories.usuario_repository import find_usuario_by_id
 from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.anuncio_repository import (
@@ -84,6 +85,16 @@ def buscar_anuncio(id_anuncio: int):
 @token_required
 def criar_anuncio(current_user_id):
     try:
+        # --- VALIDAÇÃO DE PERMISSÃO (VENDEDOR) ---
+        # Busca o usuário no banco para conferir o cargo dele
+        usuario_logado = find_usuario_by_id(current_user_id)
+
+        if not usuario_logado or usuario_logado.get("tipo_usuario") != "VENDEDOR":
+            return jsonify({
+                "erro": "Acesso negado.",
+                "detalhe": "Apenas usuários com perfil VENDEDOR podem criar anúncios."
+            }), 403 
+
         data = request.form
         imagens = request.files.getlist("imagens")
         imagem_principal = request.form.get("imagem_principal", 0)
@@ -107,7 +118,8 @@ def criar_anuncio(current_user_id):
             "erro": "Erro ao criar anúncio.",
             "detalhe": str(e)
         }), 500
-
+    
+    
 # ---------------------------------------------------------------------------
 # PUT /anuncios/<id>  →  atualiza um anúncio completo
 # ---------------------------------------------------------------------------
