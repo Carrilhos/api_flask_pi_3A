@@ -4,18 +4,33 @@ from app.services.category_service import (
     get_category_by_id
 )
 
-category_bp = Blueprint("category", __name__)
+# ---------------------------------------------------------------------------
+# Blueprint - Padronizado para /categorias
+# ---------------------------------------------------------------------------
+category_bp = Blueprint("category", __name__, url_prefix="/categorias")
 
-@category_bp.route("/categories", methods=["GET"])
-def get_categories():
-    categories = get_all_categories()
-    return jsonify(categories), 200
+# ---------------------------------------------------------------------------
+# GET /categorias → lista todas as categorias
+# ---------------------------------------------------------------------------
+@category_bp.route("/", methods=["GET"])
+def listar_categorias():
+    try:
+        categorias = get_all_categories()
+        return jsonify(categorias), 200
+    except Exception as e:
+        return jsonify({"erro": "Erro ao listar categorias.", "detalhe": str(e)}), 500
 
-@category_bp.route("/categories/<int:id_category>", methods=["GET"])
-def category_by_id(id_category):
-    category = get_category_by_id(id_category)
+# ---------------------------------------------------------------------------
+# GET /categorias/<id> → busca uma categoria pelo ID
+# ---------------------------------------------------------------------------
+@category_bp.route("/<int:id_categoria>", methods=["GET"])
+def buscar_categoria_por_id(id_categoria):
+    try:
+        categoria = get_category_by_id(id_categoria)
 
-    if not category:
-        return {"message": "Categoria não encontrada"}, 404
+        if not categoria:
+            return jsonify({"erro": "Categoria não encontrada."}), 404
 
-    return jsonify(category), 200
+        return jsonify(categoria), 200
+    except Exception as e:
+        return jsonify({"erro": "Erro ao buscar categoria.", "detalhe": str(e)}), 500

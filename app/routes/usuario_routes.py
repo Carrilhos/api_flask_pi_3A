@@ -13,42 +13,32 @@ from app.repositories.usuario_repository import (
 )
 
 # ---------------------------------------------------------------------------
-# Blueprint
+# Blueprint - Padronizado para /usuarios
 # ---------------------------------------------------------------------------
 usuario_bp = Blueprint("usuario", __name__, url_prefix="/usuarios")
 
-# ---------------------------------------------------------------------------
-# Tipos permitidos
-# ---------------------------------------------------------------------------
+# Tipos permitidos no sistema
 TIPOS_VALIDOS = {"CLIENTE", "VENDEDOR"}
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 def _campos_obrigatorios(data: dict, campos: list):
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
     return True, None
 
-
 def _validar_tipo(tipo: str):
     if tipo.upper() not in TIPOS_VALIDOS:
         return False, f"tipo_usuario inválido. Permitidos: {', '.join(TIPOS_VALIDOS)}"
     return True, None
-
 
 # ---------------------------------------------------------------------------
 # GET /usuarios  →  lista todos (filtro opcional por tipo_usuario)
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/", methods=["GET"])
 def listar_usuarios():
-    """
-    Query params opcionais:
-      - tipo_usuario (CLIENTE ou VENDEDOR)
-    """
     try:
         tipo = request.args.get("tipo_usuario")
 
@@ -61,10 +51,8 @@ def listar_usuarios():
             usuarios = find_all_usuarios()
 
         return jsonify(usuarios), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao listar usuários.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # GET /usuarios/<id>  →  busca um usuário pelo ID
@@ -73,15 +61,11 @@ def listar_usuarios():
 def buscar_usuario(id_usuario: int):
     try:
         usuario = find_usuario_by_id(id_usuario)
-
         if not usuario:
             return jsonify({"erro": "Usuário não encontrado."}), 404
-
         return jsonify(usuario), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao buscar usuário.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # GET /usuarios/email/<email>  →  busca um usuário pelo email
@@ -90,33 +74,19 @@ def buscar_usuario(id_usuario: int):
 def buscar_usuario_por_email(email: str):
     try:
         usuario = find_usuario_by_email(email)
-
         if not usuario:
             return jsonify({"erro": "Usuário não encontrado."}), 404
-
         return jsonify(usuario), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao buscar usuário.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # POST /usuarios  →  cria um novo usuário
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/", methods=["POST"])
 def criar_usuario():
-    """
-    Body JSON esperado:
-    {
-        "nome":         "Gabriel",
-        "sobrenome":    "Carrilhos",
-        "email":        "gabriel@email.com",
-        "tipo_usuario": "CLIENTE"
-    }
-    """
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
@@ -128,7 +98,6 @@ def criar_usuario():
         if not ok:
             return jsonify({"erro": erro}), 400
 
-        # Verifica se email já existe
         if find_usuario_by_email(data["email"]):
             return jsonify({"erro": "Email já cadastrado."}), 409
 
@@ -137,31 +106,19 @@ def criar_usuario():
             sobrenome    = str(data["sobrenome"]),
             email        = str(data["email"]),
             tipo_usuario = data["tipo_usuario"].upper(),
+            senha        = data.get("senha") # Mantendo a lógica de criação com senha
         )
-
         return jsonify(usuario), 201
-
     except Exception as e:
         return jsonify({"erro": "Erro ao criar usuário.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # PUT /usuarios/<id>  →  atualiza um usuário completo
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/<int:id_usuario>", methods=["PUT"])
 def atualizar_usuario(id_usuario: int):
-    """
-    Body JSON esperado:
-    {
-        "nome":         "Gabriel",
-        "sobrenome":    "Carrilhos",
-        "email":        "gabriel@email.com",
-        "tipo_usuario": "VENDEDOR"
-    }
-    """
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
@@ -173,7 +130,6 @@ def atualizar_usuario(id_usuario: int):
         if not ok:
             return jsonify({"erro": erro}), 400
 
-        # Verifica se o email já pertence a outro usuário
         existente = find_usuario_by_email(data["email"])
         if existente and existente["id_usuario"] != id_usuario:
             return jsonify({"erro": "Email já cadastrado por outro usuário."}), 409
@@ -188,12 +144,9 @@ def atualizar_usuario(id_usuario: int):
 
         if not usuario:
             return jsonify({"erro": "Usuário não encontrado."}), 404
-
         return jsonify(usuario), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao atualizar usuário.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # DELETE /usuarios/<id>  →  remove um usuário
@@ -202,51 +155,38 @@ def atualizar_usuario(id_usuario: int):
 def deletar_usuario(id_usuario: int):
     try:
         deletado = delete_usuario(id_usuario)
-
         if not deletado:
             return jsonify({"erro": "Usuário não encontrado."}), 404
-
         return jsonify({"mensagem": "Usuário deletado com sucesso."}), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar usuário.", "detalhe": str(e)}), 500
-    
 
 # ---------------------------------------------------------------------------
-# POST /usuarios/login  →  Faz o login (Requisito: SHA-256 e JWT)
+# POST /usuarios/login  →  Faz o login (SHA-256 e JWT)
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/login", methods=["POST"])
 def login():
     try:
         data = request.get_json()
-        
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
         email = data.get('email')
-        # A senha recebida já deve estar em SHA-256 vindo do cliente
         senha_sha256_recebida = data.get('senha')
 
         if not email or not senha_sha256_recebida:
             return jsonify({"erro": "Email e senha (SHA-256) são obrigatórios."}), 400
 
-        # Busca o usuário no banco
         usuario = find_usuario_by_email(email)
 
-        # Comparação direta de valores SHA-256 conforme o descritivo
         if usuario and usuario.get('senha') == senha_sha256_recebida:
-            
-            # Gerando o Token JWT (O nosso "crachá" digital)
             payload = {
                 "id_usuario": usuario.get('id_usuario'),
                 "email": usuario.get('email'),
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3) # Expira em 3 horas
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3)
             }
             
-            # O 'current_app.config['SECRET_KEY']' busca aquela chave que você colocou no __init__.py
             token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm="HS256")
-
-            # Removendo a senha da resposta por segurança
             usuario.pop('senha', None)
 
             return jsonify({
@@ -256,6 +196,5 @@ def login():
             }), 200
         
         return jsonify({"erro": "Credenciais inválidas."}), 401
-
     except Exception as e:
         return jsonify({"erro": "Erro interno no servidor.", "detalhe": str(e)}), 500
