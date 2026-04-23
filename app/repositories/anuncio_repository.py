@@ -7,17 +7,19 @@ def find_all_anuncios():
 
     cursor.execute(
         """
-        SELECT  id_anuncio,
-                id_vendedor,
-                id_produto,
-                titulo,
-                descricao,
-                preco,
-                estoque,
-                data_criacao,
-                data_atualizacao
-        FROM anuncio
-        ORDER BY data_criacao DESC
+        SELECT  a.id_anuncio,
+                a.id_vendedor,
+                a.id_produto,
+                a.titulo,
+                a.descricao,
+                a.preco,
+                a.estoque,
+                a.data_criacao,
+                a.data_atualizacao,
+                pi.url as imagem_principal
+        FROM anuncio a
+        LEFT JOIN produto_imagem pi ON a.id_anuncio = pi.id_anuncio AND pi.principal = true
+        ORDER BY a.data_criacao DESC
         """
     )
 
@@ -40,6 +42,7 @@ def find_all_anuncios():
                 "estoque":          row[6],
                 "data_criacao":     row[7],
                 "data_atualizacao": row[8],
+                "imagem_principal": row[9],
             }
         )
 
@@ -52,18 +55,20 @@ def find_anuncios_by_vendedor(id_vendedor):
 
     cursor.execute(
         """
-        SELECT  id_anuncio,
-                id_vendedor,
-                id_produto,
-                titulo,
-                descricao,
-                preco,
-                estoque,
-                data_criacao,
-                data_atualizacao
-        FROM anuncio
-        WHERE id_vendedor = %s
-        ORDER BY data_criacao DESC
+        SELECT  a.id_anuncio,
+                a.id_vendedor,
+                a.id_produto,
+                a.titulo,
+                a.descricao,
+                a.preco,
+                a.estoque,
+                a.data_criacao,
+                a.data_atualizacao,
+                pi.url as imagem_principal
+        FROM anuncio a
+        LEFT JOIN produto_imagem pi ON a.id_anuncio = pi.id_anuncio AND pi.principal = true
+        WHERE a.id_vendedor = %s
+        ORDER BY a.data_criacao DESC
         """,
         (id_vendedor,),
     )
@@ -87,11 +92,11 @@ def find_anuncios_by_vendedor(id_vendedor):
                 "estoque":          row[6],
                 "data_criacao":     row[7],
                 "data_atualizacao": row[8],
+                "imagem_principal": row[9],
             }
         )
 
     return anuncios
-
 
 def find_anuncio_by_id(id_anuncio):
     conn = get_connection()
@@ -99,17 +104,19 @@ def find_anuncio_by_id(id_anuncio):
 
     cursor.execute(
         """
-        SELECT  id_anuncio,
-                id_vendedor,
-                id_produto,
-                titulo,
-                descricao,
-                preco,
-                estoque,
-                data_criacao,
-                data_atualizacao
-        FROM anuncio
-        WHERE id_anuncio = %s
+        SELECT  a.id_anuncio,
+                a.id_vendedor,
+                a.id_produto,
+                a.titulo,
+                a.descricao,
+                a.preco,
+                a.estoque,
+                a.data_criacao,
+                a.data_atualizacao,
+                pi.url as imagem_principal
+        FROM anuncio a
+        LEFT JOIN produto_imagem pi ON a.id_anuncio = pi.id_anuncio AND pi.principal = true
+        WHERE a.id_anuncio = %s
         """,
         (id_anuncio,),
     )
@@ -132,6 +139,7 @@ def find_anuncio_by_id(id_anuncio):
         "estoque":          row[6],
         "data_criacao":     row[7],
         "data_atualizacao": row[8],
+        "imagem_principal": row[9],
     }
 
 
