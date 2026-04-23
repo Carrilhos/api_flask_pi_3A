@@ -16,13 +16,13 @@ def _campos_obrigatorios(data: dict, campos: list):
     return True, None
 
 
-def criar_anuncio_service(data, imagens=None, imagem_principal=0):
+def criar_anuncio_service(data, id_usuario, imagens=None, imagem_principal=0):
     if not data:
         raise ValueError("Form data inválido.")
 
     ok, erro = _campos_obrigatorios(
         data,
-        ["id_vendedor", "id_produto", "titulo", "preco"]
+        ["id_produto", "titulo", "preco"] 
     )
 
     if not ok:
@@ -50,7 +50,7 @@ def criar_anuncio_service(data, imagens=None, imagem_principal=0):
 
     # cria anúncio
     anuncio = create_anuncio(
-        id_vendedor=data["id_vendedor"],
+        id_vendedor=id_usuario,
         id_produto=data["id_produto"],
         titulo=str(data["titulo"])[:255],
         descricao=data.get("descricao"),
