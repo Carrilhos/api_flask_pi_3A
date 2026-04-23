@@ -1,3 +1,6 @@
+import jwt
+import datetime
+from flask import current_app
 from flask import Blueprint, request, jsonify
 from app.repositories.usuario_repository import (
     find_all_usuarios,
@@ -210,7 +213,7 @@ def deletar_usuario(id_usuario: int):
     
 
 # ---------------------------------------------------------------------------
-# POST /usuarios/login  →  Faz o login do usuário
+# POST /usuarios/login  →  Faz o login (Requisito: SHA-256 e JWT)
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/login", methods=["POST"])
 def login():
@@ -221,22 +224,38 @@ def login():
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
         email = data.get('email')
-        senha_digitada = data.get('senha')
+        # A senha recebida já deve estar em SHA-256 vindo do cliente
+        senha_sha256_recebida = data.get('senha')
 
-        if not email or not senha_digitada:
-            return jsonify({"erro": "Email e senha são obrigatórios."}), 400
+        if not email or not senha_sha256_recebida:
+            return jsonify({"erro": "Email e senha (SHA-256) são obrigatórios."}), 400
 
-        # Busca o usuário no banco (
+        # Busca o usuário no banco
         usuario = find_usuario_by_email(email)
 
-        if usuario and usuario.get('senha') == senha_digitada:
+        # Comparação direta de valores SHA-256 conforme o descritivo
+        if usuario and usuario.get('senha') == senha_sha256_recebida:
+            
+            # Gerando o Token JWT (O nosso "crachá" digital)
+            payload = {
+                "id_usuario": usuario.get('id_usuario'),
+                "email": usuario.get('email'),
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3) # Expira em 3 horas
+            }
+            
+            # O 'current_app.config['SECRET_KEY']' busca aquela chave que você colocou no __init__.py
+            token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm="HS256")
+
+            # Removendo a senha da resposta por segurança
             usuario.pop('senha', None)
+
             return jsonify({
                 "mensagem": "Login realizado com sucesso!",
+                "token": token,
                 "usuario": usuario
             }), 200
         
-        return jsonify({"erro": "Email ou senha incorretos."}), 401
+        return jsonify({"erro": "Credenciais inválidas."}), 401
 
     except Exception as e:
         return jsonify({"erro": "Erro interno no servidor.", "detalhe": str(e)}), 500
