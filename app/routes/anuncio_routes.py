@@ -8,10 +8,8 @@ from app.repositories.anuncio_repository import (
     update_estoque_anuncio,
     delete_anuncio,
 )
-from app.services.anuncio_service import (
-    criar_anuncio_service,
-    obter_anuncio_completo
-)
+from app.services.anuncio_service import criar_anuncio_service
+
 # ---------------------------------------------------------------------------
 # Blueprint
 # ---------------------------------------------------------------------------
@@ -209,16 +207,3 @@ def deletar_anuncio(id_anuncio: int):
 
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar anúncio.", "detalhe": str(e)}), 500
-
-@anuncio_bp.route("/<int:id_anuncio>/detalhes", methods=["GET"])
-def detalhe_anuncio(id_anuncio):
-    try:
-        detalhe = obter_anuncio_completo(id_anuncio)
-        
-        if not detalhe:
-            return jsonify({"erro": "Anúncio não encontrado."}), 404
-            
-        return jsonify(detalhe), 200
-
-    except Exception as e:
-        return jsonify({"erro": "Erro ao buscar detalhes do anúncio.", "detalhe": str(e)}), 500
