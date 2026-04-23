@@ -1,3 +1,4 @@
+from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.pedido_repository import (
     find_all_pedidos,
@@ -85,11 +86,11 @@ def buscar_pedido(id_pedido: int):
 # POST /pedidos  →  cria um novo pedido
 # ---------------------------------------------------------------------------
 @pedido_bp.route("/", methods=["POST"])
-def criar_pedido():
+@token_required
+def criar_pedido(current_user_id):
     """
-    Body JSON esperado:
+    Body JSON esperado (id_cliente removido, vem do Token):
     {
-        "id_cliente":      1,
         "valor_total":     150.00,
         "logradouro_snap": "Rua das Flores",
         "numero_snap":     "123",
@@ -106,7 +107,7 @@ def criar_pedido():
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
         campos = [
-            "id_cliente", "valor_total", "logradouro_snap",
+            "valor_total", "logradouro_snap",
             "numero_snap", "cidade_snap", "estado_snap",
             "cep_snap", "status",
         ]
@@ -126,7 +127,7 @@ def criar_pedido():
             return jsonify({"erro": "valor_total deve ser um número positivo."}), 400
 
         pedido = create_pedido(
-            id_cliente      = data["id_cliente"],
+            id_cliente      = current_user_id,
             valor_total     = round(valor, 2),
             logradouro_snap = str(data["logradouro_snap"])[:255],
             numero_snap     = str(data["numero_snap"])[:10],
@@ -140,7 +141,6 @@ def criar_pedido():
 
     except Exception as e:
         return jsonify({"erro": "Erro ao criar pedido.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # PUT /pedidos/<id>  →  atualiza um pedido completo

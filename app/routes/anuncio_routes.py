@@ -1,3 +1,4 @@
+from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.anuncio_repository import (
     find_all_anuncios,
@@ -78,7 +79,8 @@ def buscar_anuncio(id_anuncio: int):
     }
     """
 @anuncio_bp.route("/", methods=["POST"])
-def criar_anuncio():
+@token_required
+def criar_anuncio(current_user_id):
     try:
         data = request.form
         imagens = request.files.getlist("imagens")
@@ -90,20 +92,19 @@ def criar_anuncio():
         anuncio = criar_anuncio_service(
             data=data,
             imagens=imagens,
-            imagem_principal=imagem_principal
+            imagem_principal=imagem_principal,
+            id_usuario=current_user_id 
         )
 
         return jsonify(anuncio), 201
 
     except ValueError as e:
         return jsonify({"erro": str(e)}), 400
-
     except Exception as e:
         return jsonify({
             "erro": "Erro ao criar anúncio.",
             "detalhe": str(e)
         }), 500
-
 
 # ---------------------------------------------------------------------------
 # PUT /anuncios/<id>  →  atualiza um anúncio completo

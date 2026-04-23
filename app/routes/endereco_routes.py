@@ -1,3 +1,4 @@
+from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.endereco_repository import (
     create_endereco,
@@ -14,11 +15,11 @@ def _campos_obrigatorios(data: dict, campos: list):
     return True, None
 
 @endereco_bp.route("/", methods=["POST"])
-def criar_endereco():
+@token_required 
+def criar_endereco(current_user_id):
     """
-    Body JSON esperado:
+    Body JSON esperado (REMOVIDO o id_usuario, pois vem do Token):
     {
-        "id_usuario": 1,
         "logradouro": "Av. Bento Gonçalves",
         "numero": "123",
         "bairro": "Centro",
@@ -33,13 +34,13 @@ def criar_endereco():
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
-        campos_necessarios = ["id_usuario", "logradouro", "numero", "bairro", "cidade", "estado", "cep"]
+        campos_necessarios = ["logradouro", "numero", "bairro", "cidade", "estado", "cep"]
         ok, erro = _campos_obrigatorios(data, campos_necessarios)
         if not ok:
             return jsonify({"erro": erro}), 400
 
         endereco = create_endereco(
-            id_usuario=data["id_usuario"],
+            id_usuario=current_user_id, 
             logradouro=data["logradouro"],
             numero=data["numero"],
             bairro=data["bairro"],
