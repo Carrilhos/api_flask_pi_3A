@@ -207,3 +207,36 @@ def deletar_usuario(id_usuario: int):
 
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar usuário.", "detalhe": str(e)}), 500
+    
+
+# ---------------------------------------------------------------------------
+# POST /usuarios/login  →  Faz o login do usuário
+# ---------------------------------------------------------------------------
+@usuario_bp.route("/login", methods=["POST"])
+def login():
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
+
+        email = data.get('email')
+        senha_digitada = data.get('senha')
+
+        if not email or not senha_digitada:
+            return jsonify({"erro": "Email e senha são obrigatórios."}), 400
+
+        # Busca o usuário no banco (
+        usuario = find_usuario_by_email(email)
+
+        if usuario and usuario.get('senha') == senha_digitada:
+            usuario.pop('senha', None)
+            return jsonify({
+                "mensagem": "Login realizado com sucesso!",
+                "usuario": usuario
+            }), 200
+        
+        return jsonify({"erro": "Email ou senha incorretos."}), 401
+
+    except Exception as e:
+        return jsonify({"erro": "Erro interno no servidor.", "detalhe": str(e)}), 500
