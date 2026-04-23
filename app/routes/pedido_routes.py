@@ -1,3 +1,4 @@
+from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.pedido_repository import (
     find_all_pedidos,
@@ -10,31 +11,26 @@ from app.repositories.pedido_repository import (
 )
 
 # ---------------------------------------------------------------------------
-# Blueprint
+# Blueprint - Padronizado para /pedidos
 # ---------------------------------------------------------------------------
 pedido_bp = Blueprint("pedido", __name__, url_prefix="/pedidos")
 
-# ---------------------------------------------------------------------------
-# Status permitidos (conforme constraint da tabela: varchar(9))
-# ---------------------------------------------------------------------------
+# Status permitidos conforme regra de negócio
 STATUS_VALIDOS = {"pendente", "aprovado", "enviado", "entregue", "cancelado"}
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 def _validar_status(status: str):
     if status not in STATUS_VALIDOS:
         return False, f"Status inválido. Permitidos: {', '.join(STATUS_VALIDOS)}"
     return True, None
-
 
 def _campos_obrigatorios(data: dict, campos: list):
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
     return True, None
-
 
 # ---------------------------------------------------------------------------
 # GET /pedidos  →  lista todos (filtro opcional por id_cliente e status)
@@ -59,10 +55,8 @@ def listar_pedidos():
             pedidos = [p for p in pedidos if p["status"] == status]
 
         return jsonify(pedidos), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao listar pedidos.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # GET /pedidos/<id>  →  busca um pedido pelo ID
@@ -71,44 +65,26 @@ def listar_pedidos():
 def buscar_pedido(id_pedido: int):
     try:
         pedido = find_pedido_by_id(id_pedido)
-
         if not pedido:
             return jsonify({"erro": "Pedido não encontrado."}), 404
-
         return jsonify(pedido), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao buscar pedido.", "detalhe": str(e)}), 500
 
-
 # ---------------------------------------------------------------------------
-# POST /pedidos  →  cria um novo pedido
+# POST /pedidos  →  cria um novo pedido (PROTEGIDA)
 # ---------------------------------------------------------------------------
 @pedido_bp.route("/", methods=["POST"])
-def criar_pedido():
-    """
-    Body JSON esperado:
-    {
-        "id_cliente":      1,
-        "valor_total":     150.00,
-        "logradouro_snap": "Rua das Flores",
-        "numero_snap":     "123",
-        "cidade_snap":     "Porto Alegre",
-        "estado_snap":     "RS",
-        "cep_snap":        "90000-000",
-        "status":          "pendente"
-    }
-    """
+@token_required
+def criar_pedido(current_user_id):
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
         campos = [
-            "id_cliente", "valor_total", "logradouro_snap",
-            "numero_snap", "cidade_snap", "estado_snap",
-            "cep_snap", "status",
+            "valor_total", "logradouro_snap", "numero_snap", 
+            "cidade_snap", "estado_snap", "cep_snap", "status"
         ]
         ok, erro = _campos_obrigatorios(data, campos)
         if not ok:
@@ -126,7 +102,7 @@ def criar_pedido():
             return jsonify({"erro": "valor_total deve ser um número positivo."}), 400
 
         pedido = create_pedido(
-            id_cliente      = data["id_cliente"],
+            id_cliente      = current_user_id,
             valor_total     = round(valor, 2),
             logradouro_snap = str(data["logradouro_snap"])[:255],
             numero_snap     = str(data["numero_snap"])[:10],
@@ -135,12 +111,9 @@ def criar_pedido():
             cep_snap        = str(data["cep_snap"])[:9],
             status          = data["status"],
         )
-
         return jsonify(pedido), 201
-
     except Exception as e:
         return jsonify({"erro": "Erro ao criar pedido.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # PUT /pedidos/<id>  →  atualiza um pedido completo
@@ -149,7 +122,6 @@ def criar_pedido():
 def atualizar_pedido(id_pedido: int):
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
@@ -185,12 +157,9 @@ def atualizar_pedido(id_pedido: int):
 
         if not pedido:
             return jsonify({"erro": "Pedido não encontrado."}), 404
-
         return jsonify(pedido), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao atualizar pedido.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # PATCH /pedidos/<id>/status  →  atualiza apenas o status
@@ -199,7 +168,6 @@ def atualizar_pedido(id_pedido: int):
 def atualizar_status(id_pedido: int):
     try:
         data = request.get_json()
-
         if not data or "status" not in data:
             return jsonify({"erro": "Campo 'status' é obrigatório."}), 400
 
@@ -208,15 +176,11 @@ def atualizar_status(id_pedido: int):
             return jsonify({"erro": erro}), 400
 
         pedido = update_status_pedido(id_pedido, data["status"])
-
         if not pedido:
             return jsonify({"erro": "Pedido não encontrado."}), 404
-
         return jsonify(pedido), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao atualizar status.", "detalhe": str(e)}), 500
-
 
 # ---------------------------------------------------------------------------
 # DELETE /pedidos/<id>  →  remove um pedido
@@ -225,11 +189,8 @@ def atualizar_status(id_pedido: int):
 def deletar_pedido(id_pedido: int):
     try:
         deletado = delete_pedido(id_pedido)
-
         if not deletado:
             return jsonify({"erro": "Pedido não encontrado."}), 404
-
         return jsonify({"mensagem": "Pedido deletado com sucesso."}), 200
-
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar pedido.", "detalhe": str(e)}), 500

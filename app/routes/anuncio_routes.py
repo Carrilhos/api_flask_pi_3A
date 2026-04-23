@@ -1,3 +1,5 @@
+from app.repositories.usuario_repository import find_usuario_by_id
+from app.auth import token_required
 from flask import Blueprint, request, jsonify
 from app.repositories.anuncio_repository import (
     find_all_anuncios,
@@ -12,8 +14,9 @@ from app.services.anuncio_service import (
     criar_anuncio_service,
     obter_anuncio_completo
 )
+
 # ---------------------------------------------------------------------------
-# Blueprint
+# Blueprint - Padronizado para /anuncios
 # ---------------------------------------------------------------------------
 anuncio_bp = Blueprint("anuncio", __name__, url_prefix="/anuncios")
 
@@ -21,7 +24,6 @@ anuncio_bp = Blueprint("anuncio", __name__, url_prefix="/anuncios")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 def _campos_obrigatorios(data: dict, campos: list):
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
@@ -66,22 +68,22 @@ def buscar_anuncio(id_anuncio: int):
 
 
 # ---------------------------------------------------------------------------
-# POST /anuncios  →  cria um novo anúncio
+# POST /anuncios  →  cria um novo anúncio (PROTEGIDA)
 # ---------------------------------------------------------------------------
-    """
-    Body JSON esperado:
-    {
-        "id_vendedor": 1,
-        "id_produto":  3,
-        "titulo":      "Notebook Dell Inspiron",
-        "descricao":   "Seminovo, 16GB RAM",
-        "preco":       2500.00,
-        "estoque":     5
-    }
-    """
 @anuncio_bp.route("/", methods=["POST"])
-def criar_anuncio():
+@token_required
+def criar_anuncio(current_user_id):
     try:
+        # --- VALIDAÇÃO DE PERMISSÃO (VENDEDOR) ---
+        usuario_logado = find_usuario_by_id(current_user_id)
+
+        if not usuario_logado or usuario_logado.get("tipo_usuario") != "VENDEDOR":
+            return jsonify({
+                "erro": "Acesso negado.",
+                "detalhe": "Apenas usuários com perfil VENDEDOR podem criar anúncios."
+            }), 403 
+        # ------------------------------------------
+
         data = request.form
         imagens = request.files.getlist("imagens")
         imagem_principal = request.form.get("imagem_principal", 0)
@@ -92,36 +94,26 @@ def criar_anuncio():
         anuncio = criar_anuncio_service(
             data=data,
             imagens=imagens,
-            imagem_principal=imagem_principal
+            imagem_principal=imagem_principal,
+            id_usuario=current_user_id 
         )
 
         return jsonify(anuncio), 201
 
     except ValueError as e:
         return jsonify({"erro": str(e)}), 400
-
     except Exception as e:
         return jsonify({
             "erro": "Erro ao criar anúncio.",
             "detalhe": str(e)
         }), 500
-
-
+    
+    
 # ---------------------------------------------------------------------------
 # PUT /anuncios/<id>  →  atualiza um anúncio completo
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>", methods=["PUT"])
 def atualizar_anuncio(id_anuncio: int):
-    """
-    Body JSON esperado:
-    {
-        "id_produto": 3,
-        "titulo":     "Novo título",
-        "descricao":  "Nova descrição",
-        "preco":      1999.90,
-        "estoque":    10
-    }
-    """
     try:
         data = request.get_json()
 
@@ -210,6 +202,10 @@ def deletar_anuncio(id_anuncio: int):
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar anúncio.", "detalhe": str(e)}), 500
 
+
+# ---------------------------------------------------------------------------
+# GET /anuncios/<id>/detalhes  →  busca detalhes completos
+# ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>/detalhes", methods=["GET"])
 def detalhe_anuncio(id_anuncio):
     try:
