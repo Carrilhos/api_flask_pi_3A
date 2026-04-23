@@ -14,13 +14,15 @@ from app.config import Config
 
 #Garantia que vai funcionar
 print("INIT EXECUTADO")
+
 def register_routes(app):
     from app.routes.product_routes import produto_bp
     from app.routes.category_routes import category_bp
     from app.routes.pedido_routes import pedido_bp
     from app.routes.anuncio_routes import anuncio_bp
-    from app.routes.usuario_routes import usuario_bp
+    from app.routes.usuario_routes import usuario_bp # Importa aqui dentro
     from app.routes.endereco_routes import endereco_bp
+    
     app.register_blueprint(produto_bp)
     app.register_blueprint(category_bp)
     app.register_blueprint(pedido_bp)
@@ -31,6 +33,9 @@ def register_routes(app):
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    app.config['SECRET_KEY'] = 'projeto_pi_3a_secret_key' 
+    # ---------------------------------
 
     register_routes(app)
 
