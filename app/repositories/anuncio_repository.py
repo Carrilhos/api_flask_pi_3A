@@ -278,22 +278,30 @@ def delete_anuncio(id_anuncio):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        DELETE FROM anuncio
-        WHERE id_anuncio = %s
-        RETURNING id_anuncio
-        """,
-        (id_anuncio,),
-    )
+    try:
+        # Primeiro removem as imagens atreladas ao anúncio
+        cursor.execute("DELETE FROM produto_imagem WHERE id_anuncio = %s", (id_anuncio,))
 
-    row = cursor.fetchone()
+        # Depois apaga o anúncio
+        cursor.execute(
+            """
+            DELETE FROM anuncio
+            WHERE id_anuncio = %s
+            RETURNING id_anuncio
+            """,
+            (id_anuncio,),
+        )
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        row = cursor.fetchone()
+        conn.commit() # Confirma as duas deleções
+        return row is not None
 
-    return row is not None
+    except Exception as e:
+        conn.rollback() # Se der erro em alguma etapa, desfaz tudo
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
 
 def get_dados_basicos_anuncio_produto(id_anuncio):
     conn = get_connection()
