@@ -2,7 +2,11 @@ from app.repositories.anuncio_repository import (
     create_anuncio,
     get_dados_basicos_anuncio_produto,
     get_imagens_por_anuncio,
-    get_atributos_por_produto
+    get_atributos_por_produto,
+    delete_anuncio,
+    update_anuncio,
+    find_anuncio_by_id,
+    update_estoque_anuncio
 )
 
 from app.repositories.produto_imagem_repository import inserir_imagem
@@ -161,3 +165,58 @@ def obter_anuncio_completo(id_anuncio):
             anuncio_dict["atributos"].append({ nome_attr: valor_final })
 
     return anuncio_dict
+
+def _verificar_dono(id_anuncio, current_user_id):
+    anuncio = find_anuncio_by_id(id_anuncio)
+    if not anuncio:
+        raise ValueError("Anúncio não encontrado.")
+    
+    if anuncio["id_vendedor"] != current_user_id:
+        raise PermissionError("Acesso negado. Você não é o dono deste anúncio.")
+    
+    return anuncio
+
+# --- SERVICES ---
+def atualizar_anuncio_service(id_anuncio, current_user_id, data):
+    _verificar_dono(id_anuncio, current_user_id)
+
+    ok, erro = _campos_obrigatorios(data, ["id_produto", "titulo", "preco"])
+    if not ok:
+        raise ValueError(erro)
+
+    try:
+        preco = round(float(data["preco"]), 2)
+        if preco < 0: raise ValueError
+    except:
+        raise ValueError("preco deve ser um número positivo.")
+
+    estoque = data.get("estoque", 0)
+    try:
+        estoque = int(estoque)
+        if estoque < 0: raise ValueError
+    except:
+        raise ValueError("estoque deve ser um número inteiro não negativo.")
+
+    return update_anuncio(
+        id_anuncio = id_anuncio,
+        id_produto = data["id_produto"],
+        titulo     = str(data["titulo"])[:255],
+        descricao  = data.get("descricao"),
+        preco      = preco,
+        estoque    = estoque,
+    )
+
+def atualizar_estoque_service(id_anuncio, current_user_id, estoque):
+    _verificar_dono(id_anuncio, current_user_id)
+
+    try:
+        estoque_int = int(estoque)
+        if estoque_int < 0: raise ValueError
+    except:
+        raise ValueError("estoque deve ser um número inteiro não negativo.")
+
+    return update_estoque_anuncio(id_anuncio, estoque_int)
+
+def deletar_anuncio_service(id_anuncio, current_user_id):
+    _verificar_dono(id_anuncio, current_user_id)
+    return delete_anuncio(id_anuncio)

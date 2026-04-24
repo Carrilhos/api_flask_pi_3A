@@ -5,14 +5,13 @@ from app.repositories.anuncio_repository import (
     find_all_anuncios,
     find_anuncios_by_vendedor,
     find_anuncio_by_id,
-    create_anuncio,
-    update_anuncio,
-    update_estoque_anuncio,
-    delete_anuncio,
 )
 from app.services.anuncio_service import (
     criar_anuncio_service,
-    obter_anuncio_completo
+    obter_anuncio_completo,
+    atualizar_anuncio_service,
+    atualizar_estoque_service,
+    deletar_anuncio_service,
 )
 
 # ---------------------------------------------------------------------------
@@ -128,46 +127,20 @@ def criar_anuncio(current_user_id):
 # PUT /anuncios/<id>  →  atualiza um anúncio completo
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>", methods=["PUT"])
-def atualizar_anuncio(id_anuncio: int):
+@token_required
+def atualizar_anuncio(current_user_id, id_anuncio: int):
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
-        ok, erro = _campos_obrigatorios(data, ["id_produto", "titulo", "preco"])
-        if not ok:
-            return jsonify({"erro": erro}), 400
-
-        try:
-            preco = round(float(data["preco"]), 2)
-            if preco < 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return jsonify({"erro": "preco deve ser um número positivo."}), 400
-
-        estoque = data.get("estoque", 0)
-        try:
-            estoque = int(estoque)
-            if estoque < 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return jsonify({"erro": "estoque deve ser um número inteiro não negativo."}), 400
-
-        anuncio = update_anuncio(
-            id_anuncio = id_anuncio,
-            id_produto  = data["id_produto"],
-            titulo     = str(data["titulo"])[:255],
-            descricao  = data.get("descricao"),
-            preco      = preco,
-            estoque    = estoque,
-        )
-
-        if not anuncio:
-            return jsonify({"erro": "Anúncio não encontrado."}), 404
-
+        anuncio = atualizar_anuncio_service(id_anuncio, current_user_id, data)
         return jsonify(anuncio), 200
 
+    except ValueError as e:
+        return jsonify({"erro": str(e)}), 400 if "não encontrado" not in str(e) else 404
+    except PermissionError as e:
+        return jsonify({"erro": str(e)}), 403
     except Exception as e:
         return jsonify({"erro": "Erro ao atualizar anúncio.", "detalhe": str(e)}), 500
 
@@ -176,27 +149,20 @@ def atualizar_anuncio(id_anuncio: int):
 # PATCH /anuncios/<id>/estoque  →  atualiza apenas o estoque
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>/estoque", methods=["PATCH"])
-def atualizar_estoque(id_anuncio: int):
+@token_required
+def atualizar_estoque(current_user_id, id_anuncio: int):
     try:
         data = request.get_json()
-
         if not data or "estoque" not in data:
             return jsonify({"erro": "Campo 'estoque' é obrigatório."}), 400
 
-        try:
-            estoque = int(data["estoque"])
-            if estoque < 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return jsonify({"erro": "estoque deve ser um número inteiro não negativo."}), 400
-
-        anuncio = update_estoque_anuncio(id_anuncio, estoque)
-
-        if not anuncio:
-            return jsonify({"erro": "Anúncio não encontrado."}), 404
-
+        anuncio = atualizar_estoque_service(id_anuncio, current_user_id, data["estoque"])
         return jsonify(anuncio), 200
 
+    except ValueError as e:
+        return jsonify({"erro": str(e)}), 400 if "não encontrado" not in str(e) else 404
+    except PermissionError as e:
+        return jsonify({"erro": str(e)}), 403
     except Exception as e:
         return jsonify({"erro": "Erro ao atualizar estoque.", "detalhe": str(e)}), 500
 
@@ -205,14 +171,15 @@ def atualizar_estoque(id_anuncio: int):
 # DELETE /anuncios/<id>  →  remove um anúncio
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>", methods=["DELETE"])
-def deletar_anuncio(id_anuncio: int):
+@token_required
+def deletar_anuncio_rota(current_user_id, id_anuncio: int):
     try:
-        deletado = delete_anuncio(id_anuncio)
-
-        if not deletado:
-            return jsonify({"erro": "Anúncio não encontrado."}), 404
-
+        deletar_anuncio_service(id_anuncio, current_user_id)
         return jsonify({"mensagem": "Anúncio deletado com sucesso."}), 200
 
+    except ValueError as e:
+        return jsonify({"erro": str(e)}), 404
+    except PermissionError as e:
+        return jsonify({"erro": str(e)}), 403
     except Exception as e:
         return jsonify({"erro": "Erro ao deletar anúncio.", "detalhe": str(e)}), 500
