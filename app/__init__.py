@@ -1,4 +1,6 @@
+import os
 from flask import Flask
+from flask_cors import CORS
 from app.config import Config
 
 #Pai nosso que estais nos Céus,
@@ -38,6 +40,21 @@ def create_app():
     
     app.config['SECRET_KEY'] = 'projeto_pi_3a_secret_key' 
     # ---------------------------------
+
+    # ---- Configuração de CORS ----
+    # Origens base sempre permitidas (localhost em qualquer porta)
+    allowed_origins = [
+        r"http://localhost(:\d+)?",
+        r"http://127\.0\.0\.1(:\d+)?",
+    ]
+    # Origens adicionais definidas no .env (separadas por vírgula)
+    # Exemplo: ALLOWED_ORIGINS=https://meu-front.vercel.app,https://outro-dominio.com
+    extra = os.getenv("ALLOWED_ORIGINS", "")
+    if extra:
+        allowed_origins += [origin.strip() for origin in extra.split(",") if origin.strip()]
+
+    CORS(app, origins=allowed_origins, supports_credentials=True)
+    # ------------------------------
 
     register_routes(app)
 
