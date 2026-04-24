@@ -13,6 +13,7 @@ from app.services.anuncio_service import (
     atualizar_estoque_service,
     deletar_anuncio_service,
 )
+from app.repositories.produto_repository import find_produto_by_id
 
 # ---------------------------------------------------------------------------
 # Blueprint - Padronizado para /anuncios
@@ -30,6 +31,17 @@ def _campos_obrigatorios(data: dict, campos: list):
     return True, None
 
 
+def _add_categoria(anuncio):
+    if not anuncio:
+        return anuncio
+    if "produto" in anuncio and isinstance(anuncio["produto"], dict):
+        anuncio["id_categoria"] = anuncio["produto"].get("id_categoria")
+    elif "id_produto" in anuncio:
+        produto = find_produto_by_id(anuncio.get("id_produto"))
+        anuncio["id_categoria"] = produto.get("id_categoria") if produto else None
+    return anuncio
+
+
 # ---------------------------------------------------------------------------
 # GET /anuncios  →  lista todos (filtro opcional por id_vendedor)
 # ---------------------------------------------------------------------------
@@ -42,6 +54,9 @@ def listar_anuncios():
             anuncios = find_anuncios_by_vendedor(id_vendedor)
         else:
             anuncios = find_all_anuncios()
+
+        for anuncio in anuncios:
+            _add_categoria(anuncio)
 
         return jsonify(anuncios), 200
 
@@ -60,6 +75,7 @@ def buscar_anuncio(id_anuncio: int):
         if not anuncio:
             return jsonify({"erro": "Anúncio não encontrado."}), 404
 
+        _add_categoria(anuncio)
         return jsonify(anuncio), 200
 
     except Exception as e:
@@ -76,6 +92,7 @@ def detalhe_anuncio(id_anuncio):
         if not detalhe:
             return jsonify({"erro": "Anúncio não encontrado."}), 404
             
+        _add_categoria(detalhe)
         return jsonify(detalhe), 200
 
     except Exception as e:
@@ -112,6 +129,7 @@ def criar_anuncio(current_user_id):
             id_usuario=current_user_id 
         )
 
+        _add_categoria(anuncio)
         return jsonify(anuncio), 201
 
     except ValueError as e:
@@ -135,6 +153,7 @@ def atualizar_anuncio(current_user_id, id_anuncio: int):
             return jsonify({"erro": "Body JSON inválido ou ausente."}), 400
 
         anuncio = atualizar_anuncio_service(id_anuncio, current_user_id, data)
+        _add_categoria(anuncio)
         return jsonify(anuncio), 200
 
     except ValueError as e:
@@ -157,6 +176,7 @@ def atualizar_estoque(current_user_id, id_anuncio: int):
             return jsonify({"erro": "Campo 'estoque' é obrigatório."}), 400
 
         anuncio = atualizar_estoque_service(id_anuncio, current_user_id, data["estoque"])
+        _add_categoria(anuncio)
         return jsonify(anuncio), 200
 
     except ValueError as e:
