@@ -3,7 +3,9 @@ from flask import Blueprint, request, jsonify
 from app.repositories.endereco_repository import (
     create_endereco,
     update_endereco,
-    delete_endereco
+    delete_endereco,
+    find_enderecos_by_usuario,
+    find_endereco_by_id,
 )
 
 # ---------------------------------------------------------------------------
@@ -20,6 +22,39 @@ def _campos_obrigatorios(data: dict, campos: list):
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
     return True, None
 
+# ---------------------------------------------------------------------------
+# GET /enderecos  →  lista endereços do usuário autenticado
+# ---------------------------------------------------------------------------
+@endereco_bp.route("/", methods=["GET"])
+@token_required
+def listar_enderecos(id_usuario_autenticado):
+    try:
+        enderecos = find_enderecos_by_usuario(id_usuario_autenticado)
+        return jsonify(enderecos), 200
+ 
+    except Exception as e:
+        return jsonify({"erro": "Erro ao listar endereços.", "detalhe": str(e)}), 500
+ 
+ 
+# ---------------------------------------------------------------------------
+# GET /enderecos/<id>
+# ---------------------------------------------------------------------------
+@endereco_bp.route("/<int:id_endereco>", methods=["GET"])
+@token_required
+def buscar_endereco(id_usuario_autenticado, id_endereco: int):
+    try:
+        endereco = find_endereco_by_id(id_endereco)
+ 
+        if not endereco:
+            return jsonify({"erro": "Endereço não encontrado."}), 404
+ 
+        if endereco["id_usuario"] != id_usuario_autenticado:
+            return jsonify({"erro": "Acesso negado."}), 403
+ 
+        return jsonify(endereco), 200
+ 
+    except Exception as e:
+        return jsonify({"erro": "Erro ao buscar endereço.", "detalhe": str(e)}), 500
 # ---------------------------------------------------------------------------
 # POST /enderecos → cria um novo endereço (PROTEGIDA)
 # ---------------------------------------------------------------------------
