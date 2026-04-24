@@ -74,9 +74,6 @@ def get_category_attributes():
 
     return category_attributes
     
-
-
-
 def find_produto_by_id(id_produto):
     conn = get_connection()
     cursor = conn.cursor()
@@ -110,3 +107,26 @@ def find_produto_by_id(id_produto):
         "data_atualizacao": row[8],
         "fabricante": row[9],
     }
+
+def get_atributos_por_produto(id_produto):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # JOIN entre a tabela de ligação (produto_atributo) 
+    # e a tabela de nomes (atributo) para pegar a ficha técnica completa
+    cursor.execute(
+        """
+        SELECT attr.nome, pa.valor_string, pa.valor_number, pa.valor_boolean
+        FROM produto_atributo pa
+        JOIN atributo attr ON pa.id_atributo = attr.id_atributo
+        WHERE pa.id_produto = %s
+        """,
+        (id_produto,)
+    )
+    
+    rows = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return rows
