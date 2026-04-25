@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from app.config import Config
 
 #Pai nosso que estais nos Céus,
@@ -36,8 +37,13 @@ def create_app():
     app.json.sort_keys = False
     app.config.from_object(Config)
     
-    app.config['SECRET_KEY'] = 'projeto_pi_3a_secret_key' 
+    app.config['SECRET_KEY'] = 'projeto_pi_3a_secret_key'
     # ---------------------------------
+
+    CORS(app, origins=[
+        "http://localhost:3000",
+        "https://front-pi-3-a.vercel.app",
+    ])
 
     register_routes(app)
 
