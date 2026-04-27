@@ -14,6 +14,7 @@ from app.services.upload_service import upload_imagem_supabase
 
 
 def _campos_obrigatorios(data: dict, campos: list):
+    """Verifica se os campos obrigatórios estão presentes no dicionário de dados."""
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
@@ -21,6 +22,7 @@ def _campos_obrigatorios(data: dict, campos: list):
 
 
 def criar_anuncio_service(data, id_usuario, imagens=None, imagem_principal=0):
+    """Valida os dados e cria um novo anúncio, processando e realizando o upload das imagens associadas."""
     if not data:
         raise ValueError("Form data inválido.")
 
@@ -108,6 +110,7 @@ def criar_anuncio_service(data, id_usuario, imagens=None, imagem_principal=0):
     return anuncio
 
 def obter_anuncio_completo(id_anuncio):
+    """Busca e estrutura todos os detalhes de um anúncio, incluindo imagens, dados do produto e seus atributos."""
     # Busca os dados brutos no Repository
     row_anuncio = get_dados_basicos_anuncio_produto(id_anuncio)
     
@@ -167,6 +170,7 @@ def obter_anuncio_completo(id_anuncio):
     return anuncio_dict
 
 def _verificar_dono(id_anuncio, current_user_id):
+    """Verifica se o usuário atual é o proprietário (vendedor) do anúncio."""
     anuncio = find_anuncio_by_id(id_anuncio)
     if not anuncio:
         raise ValueError("Anúncio não encontrado.")
@@ -178,6 +182,7 @@ def _verificar_dono(id_anuncio, current_user_id):
 
 # --- SERVICES ---
 def atualizar_anuncio_service(id_anuncio, current_user_id, data):
+    """Valida e atualiza as informações básicas de um anúncio, garantindo que o usuário seja o dono."""
     _verificar_dono(id_anuncio, current_user_id)
 
     ok, erro = _campos_obrigatorios(data, ["id_produto", "titulo", "preco"])
@@ -207,6 +212,7 @@ def atualizar_anuncio_service(id_anuncio, current_user_id, data):
     )
 
 def atualizar_estoque_service(id_anuncio, current_user_id, estoque):
+    """Atualiza apenas a quantidade em estoque de um anúncio, após validar a posse e o valor."""
     _verificar_dono(id_anuncio, current_user_id)
 
     try:
@@ -218,5 +224,6 @@ def atualizar_estoque_service(id_anuncio, current_user_id, estoque):
     return update_estoque_anuncio(id_anuncio, estoque_int)
 
 def deletar_anuncio_service(id_anuncio, current_user_id):
+    """Remove um anúncio do sistema, desde que o usuário solicitante seja o dono."""
     _verificar_dono(id_anuncio, current_user_id)
     return delete_anuncio(id_anuncio)

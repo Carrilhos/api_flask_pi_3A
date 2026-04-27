@@ -17,6 +17,7 @@ from app.config import Config
 print("INIT EXECUTADO")
 
 def register_routes(app):
+    """Registra todos os Blueprints (rotas) da aplicação no app Flask."""
     from app.routes.product_routes import produto_bp
     from app.routes.category_routes import category_bp
     from app.routes.pedido_routes import pedido_bp
@@ -32,6 +33,7 @@ def register_routes(app):
     app.register_blueprint(endereco_bp)
 
 def create_app():
+    """Factory function para criar, configurar e retornar a instância da aplicação Flask com CORS e Blueprints."""
     app = Flask(__name__)
     # Diz para o Flask parar de ordenar as chaves do JSON em ordem alfabética
     app.json.sort_keys = False

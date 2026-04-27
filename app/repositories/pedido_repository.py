@@ -34,6 +34,7 @@ def _agrupar_pedidos_com_itens(rows):
 
 
 def find_all_pedidos():
+    """Busca todos os pedidos do sistema (com seus respectivos itens aglomerados)."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -52,6 +53,7 @@ def find_all_pedidos():
 
 
 def find_pedidos_by_cliente(id_cliente):
+    """Busca os pedidos de um cliente específico com seus itens."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -71,6 +73,7 @@ def find_pedidos_by_cliente(id_cliente):
 
 
 def find_pedido_by_id(id_pedido):
+    """Busca um pedido detalhado através do seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -91,6 +94,7 @@ def find_pedido_by_id(id_pedido):
 
 
 def criar_pedido(id_cliente, valor_total, snaps, itens):
+    """Insere o pedido, os itens, faz o desconto de estoque (tudo em uma transação segura)."""
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -128,6 +132,7 @@ def criar_pedido(id_cliente, valor_total, snaps, itens):
         conn.close()
 
 def update_status_pedido(id_pedido, status):
+    """Atualiza o status de um pedido."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -143,6 +148,7 @@ def update_status_pedido(id_pedido, status):
     return {"id_pedido": row[0], "id_cliente": row[1], "status": row[2], "data_atualizacao": row[3]}
 
 def cancelar_pedido(id_pedido):
+    """Marca o status do pedido como 'cancelado' e devolve as quantidades ao estoque dos anúncios."""
     conn = get_connection()
     cursor = conn.cursor()
     

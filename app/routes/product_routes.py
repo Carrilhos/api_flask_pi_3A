@@ -14,6 +14,7 @@ produto_bp = Blueprint("produto", __name__, url_prefix="/produtos")
 # ---------------------------------------------------------------------------
 @produto_bp.route("/", methods=["GET"])
 def listar_produtos():
+    """Lista todos os produtos disponíveis."""
     try:
         produtos = get_all_produtos()
         return jsonify(produtos), 200
@@ -28,6 +29,7 @@ def listar_produtos():
 # ---------------------------------------------------------------------------
 @produto_bp.route("/<int:id_produto>", methods=["GET"])
 def buscar_produto_por_id(id_produto: int):
+    """Busca os detalhes de um produto específico pelo seu ID."""
     try:
         produto = get_produto_by_id(id_produto)
 

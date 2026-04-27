@@ -2,9 +2,9 @@
 
 ## Fluxo de desenvolvimento (Git)
 
-* Sempre crie uma branch a partir da `main`
-* Desenvolva na sua branch
-* Abra um PR (Pull Request) para `main`
+- Sempre crie uma branch a partir da `main`
+- Desenvolva na sua branch
+- Abra um PR (Pull Request) para `main`
 
 Exemplo:
 
@@ -98,7 +98,6 @@ app/
  ├── routes/
  ├── services/
  ├── repositories/
- ├── models/
  ├── database.py
  └── __init__.py
 

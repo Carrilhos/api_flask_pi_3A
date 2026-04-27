@@ -2,6 +2,7 @@ from app.database import get_connection
 
 
 def find_all_usuarios():
+    """Busca todos os usuários cadastrados."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -43,6 +44,7 @@ def find_all_usuarios():
 
 
 def find_usuarios_by_tipo(tipo_usuario):
+    """Filtra e busca usuários baseados em seu tipo (CLIENTE ou VENDEDOR)."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -86,6 +88,7 @@ def find_usuarios_by_tipo(tipo_usuario):
 
 
 def find_usuario_by_id(id_usuario):
+    """Busca os dados públicos de um usuário pelo seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -124,6 +127,7 @@ def find_usuario_by_id(id_usuario):
 
 
 def find_usuario_by_email(email):
+    """Busca um usuário pelo e-mail, trazendo também a senha (para autenticação)."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -163,6 +167,7 @@ def find_usuario_by_email(email):
 
 
 def create_usuario(nome, sobrenome, email, tipo_usuario, senha):
+    """Insere um novo usuário e suas credenciais no sistema."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -193,6 +198,7 @@ def create_usuario(nome, sobrenome, email, tipo_usuario, senha):
 
 
 def update_usuario(id_usuario, nome, sobrenome, email, tipo_usuario):
+    """Atualiza os dados pessoais de um usuário existente."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -236,6 +242,7 @@ def update_usuario(id_usuario, nome, sobrenome, email, tipo_usuario):
 
 
 def delete_usuario(id_usuario):
+    """Remove um usuário do sistema através do seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
 

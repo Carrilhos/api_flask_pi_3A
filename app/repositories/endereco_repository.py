@@ -1,6 +1,7 @@
 from app.database import get_connection
 
 def create_endereco(id_usuario, logradouro, numero, bairro, cidade, estado, cep):
+    """Insere um novo endereço vinculado a um usuário."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -35,6 +36,7 @@ def create_endereco(id_usuario, logradouro, numero, bairro, cidade, estado, cep)
 
 
 def update_endereco(id_endereco, logradouro, numero, bairro, cidade, estado, cep):
+    """Atualiza as informações de um endereço existente."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -72,6 +74,7 @@ def update_endereco(id_endereco, logradouro, numero, bairro, cidade, estado, cep
 
 
 def delete_endereco(id_endereco):
+    """Remove um endereço do banco de dados pelo seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -93,6 +96,7 @@ def delete_endereco(id_endereco):
     return row is not None  # Retorna True se deletou, False se não achou
 
 def find_enderecos_by_usuario(id_usuario):
+    """Busca todos os endereços pertencentes a um determinado usuário."""
     conn = get_connection()
     cursor = conn.cursor()
  
@@ -124,6 +128,7 @@ def find_enderecos_by_usuario(id_usuario):
  
  
 def find_endereco_by_id(id_endereco):
+    """Busca um endereço específico pelo seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
  
@@ -157,6 +162,7 @@ def find_endereco_by_id(id_endereco):
  
  
 def _row_to_dict(row):
+    """Função auxiliar para mapear a tupla retornada do banco em um dicionário de endereço."""
     return {
         "id_endereco":      row[0],
         "id_usuario":       row[1],

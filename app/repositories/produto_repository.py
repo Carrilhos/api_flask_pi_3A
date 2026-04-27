@@ -2,6 +2,7 @@ from app.database import get_connection
 
 
 def find_all_produtos():
+    """Busca todos os produtos ativos."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -44,6 +45,7 @@ def find_all_produtos():
 
 
 def get_category_attributes():
+    """Busca o mapeamento de atributos atrelados a cada categoria."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -75,6 +77,7 @@ def get_category_attributes():
     return category_attributes
     
 def find_produto_by_id(id_produto):
+    """Busca os detalhes base de um produto pelo seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -109,6 +112,7 @@ def find_produto_by_id(id_produto):
     }
 
 def get_atributos_por_produto(id_produto):
+    """Recupera os atributos EAV (Entity-Attribute-Value) associados a um produto."""
     conn = get_connection()
     cursor = conn.cursor()
     
