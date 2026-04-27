@@ -19,6 +19,7 @@ STATUS_VALIDOS = {"pendente", "aprovado", "enviado", "entregue", "cancelado"}
 @pedido_bp.route("/", methods=["GET"])
 @token_required
 def listar_pedidos(current_user_id):
+    """Lista todos os pedidos efetuados pelo usuário autenticado."""
     try:
         # Busca apenas os pedidos do dono do token
         pedidos = find_pedidos_by_cliente(current_user_id)
@@ -32,6 +33,7 @@ def listar_pedidos(current_user_id):
 @pedido_bp.route("/<int:id_pedido>", methods=["GET"])
 @token_required
 def buscar_pedido(current_user_id, id_pedido: int):
+    """Busca os detalhes de um pedido específico, validando a permissão de acesso."""
     try:
         pedido = find_pedido_by_id(id_pedido)
         
@@ -49,6 +51,7 @@ def buscar_pedido(current_user_id, id_pedido: int):
 @pedido_bp.route("/", methods=["POST"])
 @token_required
 def criar(current_user_id):
+    """Cria um novo pedido com os itens fornecidos, associado ao usuário logado."""
     try:
         data = request.get_json()
         if not data or "id_endereco" not in data or "itens" not in data:
@@ -72,6 +75,7 @@ def criar(current_user_id):
 @pedido_bp.route("/<int:id_pedido>", methods=["DELETE"])
 @token_required
 def cancelar_pedido_rota(current_user_id, id_pedido: int):
+    """Cancela um pedido (soft delete) e estorna os itens para o estoque."""
     try:
         cancelar_pedido_service(current_user_id, id_pedido)
         return jsonify({"mensagem": "Pedido cancelado com sucesso e estoque devolvido aos anúncios."}), 200
@@ -88,6 +92,7 @@ def cancelar_pedido_rota(current_user_id, id_pedido: int):
 # ---------------------------------------------------------------------------
 @pedido_bp.route("/<int:id_pedido>/status", methods=["PATCH"])
 def atualizar_status(id_pedido: int):
+    """Atualiza o status de um pedido específico. (Para uso de administrador)."""
     # Obs: essa rota talvez fique restrita para admin no futuro.
     # Por enquanto deixei sem token_required pra não quebrar o que já está integrado,
     # mas o ideal depois é colocar algo como @admin_required.

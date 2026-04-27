@@ -17,6 +17,7 @@ endereco_bp = Blueprint("endereco", __name__, url_prefix="/enderecos")
 # Helpers
 # ---------------------------------------------------------------------------
 def _campos_obrigatorios(data: dict, campos: list):
+    """Verifica se os campos obrigatórios estão presentes no dicionário de dados."""
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
@@ -28,6 +29,7 @@ def _campos_obrigatorios(data: dict, campos: list):
 @endereco_bp.route("/", methods=["GET"])
 @token_required
 def listar_enderecos(id_usuario_autenticado):
+    """Lista todos os endereços vinculados ao usuário autenticado."""
     try:
         enderecos = find_enderecos_by_usuario(id_usuario_autenticado)
         return jsonify(enderecos), 200
@@ -42,6 +44,7 @@ def listar_enderecos(id_usuario_autenticado):
 @endereco_bp.route("/<int:id_endereco>", methods=["GET"])
 @token_required
 def buscar_endereco(id_usuario_autenticado, id_endereco: int):
+    """Busca um endereço específico pelo ID, garantindo que pertence ao usuário autenticado."""
     try:
         endereco = find_endereco_by_id(id_endereco)
  
@@ -61,6 +64,7 @@ def buscar_endereco(id_usuario_autenticado, id_endereco: int):
 @endereco_bp.route("/", methods=["POST"])
 @token_required 
 def criar_endereco(current_user_id):
+    """Cria um novo endereço para o usuário autenticado."""
     try:
         data = request.get_json()
         if not data:
@@ -89,6 +93,7 @@ def criar_endereco(current_user_id):
 # ---------------------------------------------------------------------------
 @endereco_bp.route("/<int:id_endereco>", methods=["PUT"])
 def atualizar_endereco(id_endereco: int):
+    """Atualiza as informações de um endereço existente."""
     try:
         data = request.get_json()
         if not data:
@@ -120,6 +125,7 @@ def atualizar_endereco(id_endereco: int):
 # ---------------------------------------------------------------------------
 @endereco_bp.route("/<int:id_endereco>", methods=["DELETE"])
 def deletar_endereco(id_endereco: int):
+    """Remove um endereço específico pelo seu ID."""
     try:
         deletado = delete_endereco(id_endereco)
         if not deletado:

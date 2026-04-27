@@ -25,6 +25,7 @@ anuncio_bp = Blueprint("anuncio", __name__, url_prefix="/anuncios")
 # Helpers
 # ---------------------------------------------------------------------------
 def _campos_obrigatorios(data: dict, campos: list):
+    """Verifica se os campos obrigatórios estão presentes no dicionário de dados."""
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
@@ -32,6 +33,7 @@ def _campos_obrigatorios(data: dict, campos: list):
 
 
 def _add_categoria(anuncio):
+    """Adiciona o ID da categoria ao anúncio, extraindo do produto associado."""
     if not anuncio:
         return anuncio
     if "produto" in anuncio and isinstance(anuncio["produto"], dict):
@@ -47,6 +49,7 @@ def _add_categoria(anuncio):
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/", methods=["GET"])
 def listar_anuncios():
+    """Lista todos os anúncios. Permite filtro opcional por id_vendedor via query param."""
     try:
         id_vendedor = request.args.get("id_vendedor", type=int)
 
@@ -69,6 +72,7 @@ def listar_anuncios():
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>", methods=["GET"])
 def buscar_anuncio(id_anuncio: int):
+    """Busca os dados de um anúncio específico pelo seu ID."""
     try:
         anuncio = find_anuncio_by_id(id_anuncio)
 
@@ -86,6 +90,7 @@ def buscar_anuncio(id_anuncio: int):
 # ---------------------------------------------------------------------------
 @anuncio_bp.route("/<int:id_anuncio>/detalhes", methods=["GET"])
 def detalhe_anuncio(id_anuncio):
+    """Busca os detalhes completos de um anúncio específico pelo seu ID."""
     try:
         detalhe = obter_anuncio_completo(id_anuncio)
         
@@ -104,6 +109,7 @@ def detalhe_anuncio(id_anuncio):
 @anuncio_bp.route("/", methods=["POST"])
 @token_required
 def criar_anuncio(current_user_id):
+    """Cria um novo anúncio. Requer autenticação e perfil de VENDEDOR."""
     try:
         # --- VALIDAÇÃO DE PERMISSÃO (VENDEDOR) ---
         usuario_logado = find_usuario_by_id(current_user_id)
@@ -147,6 +153,7 @@ def criar_anuncio(current_user_id):
 @anuncio_bp.route("/<int:id_anuncio>", methods=["PUT"])
 @token_required
 def atualizar_anuncio(current_user_id, id_anuncio: int):
+    """Atualiza as informações de um anúncio existente. Requer autenticação."""
     try:
         data = request.get_json()
         if not data:
@@ -170,6 +177,7 @@ def atualizar_anuncio(current_user_id, id_anuncio: int):
 @anuncio_bp.route("/<int:id_anuncio>/estoque", methods=["PATCH"])
 @token_required
 def atualizar_estoque(current_user_id, id_anuncio: int):
+    """Atualiza a quantidade em estoque de um anúncio específico. Requer autenticação."""
     try:
         data = request.get_json()
         if not data or "estoque" not in data:
@@ -193,6 +201,7 @@ def atualizar_estoque(current_user_id, id_anuncio: int):
 @anuncio_bp.route("/<int:id_anuncio>", methods=["DELETE"])
 @token_required
 def deletar_anuncio_rota(current_user_id, id_anuncio: int):
+    """Remove um anúncio pelo seu ID. Requer autenticação."""
     try:
         deletar_anuncio_service(id_anuncio, current_user_id)
         return jsonify({"mensagem": "Anúncio deletado com sucesso."}), 200

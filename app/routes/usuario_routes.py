@@ -24,12 +24,14 @@ TIPOS_VALIDOS = {"CLIENTE", "VENDEDOR"}
 # Helpers
 # ---------------------------------------------------------------------------
 def _campos_obrigatorios(data: dict, campos: list):
+    """Verifica se os campos obrigatórios estão presentes no dicionário de dados."""
     faltando = [c for c in campos if c not in data or data[c] is None]
     if faltando:
         return False, f"Campos obrigatórios ausentes: {', '.join(faltando)}"
     return True, None
 
 def _validar_tipo(tipo: str):
+    """Valida se o tipo de usuário fornecido é permitido pelo sistema."""
     if tipo.upper() not in TIPOS_VALIDOS:
         return False, f"tipo_usuario inválido. Permitidos: {', '.join(TIPOS_VALIDOS)}"
     return True, None
@@ -39,6 +41,7 @@ def _validar_tipo(tipo: str):
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/", methods=["GET"])
 def listar_usuarios():
+    """Lista os usuários cadastrados, com opção de filtro por tipo via query param."""
     try:
         tipo = request.args.get("tipo_usuario")
 
@@ -59,6 +62,7 @@ def listar_usuarios():
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/<int:id_usuario>", methods=["GET"])
 def buscar_usuario(id_usuario: int):
+    """Busca um usuário pelo seu ID."""
     try:
         usuario = find_usuario_by_id(id_usuario)
         if not usuario:
@@ -72,6 +76,7 @@ def buscar_usuario(id_usuario: int):
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/email/<string:email>", methods=["GET"])
 def buscar_usuario_por_email(email: str):
+    """Busca um usuário pelo seu endereço de e-mail."""
     try:
         usuario = find_usuario_by_email(email)
         if not usuario:
@@ -85,6 +90,7 @@ def buscar_usuario_por_email(email: str):
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/", methods=["POST"])
 def criar_usuario():
+    """Cria um novo usuário e valida se o e-mail já está em uso."""
     try:
         data = request.get_json()
         if not data:
@@ -117,6 +123,7 @@ def criar_usuario():
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/<int:id_usuario>", methods=["PUT"])
 def atualizar_usuario(id_usuario: int):
+    """Atualiza os dados de um usuário existente, validando a unicidade do e-mail."""
     try:
         data = request.get_json()
         if not data:
@@ -153,6 +160,7 @@ def atualizar_usuario(id_usuario: int):
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/<int:id_usuario>", methods=["DELETE"])
 def deletar_usuario(id_usuario: int):
+    """Remove um usuário pelo seu ID."""
     try:
         deletado = delete_usuario(id_usuario)
         if not deletado:
@@ -166,6 +174,7 @@ def deletar_usuario(id_usuario: int):
 # ---------------------------------------------------------------------------
 @usuario_bp.route("/login", methods=["POST"])
 def login():
+    """Autentica o usuário validando e-mail e senha (SHA-256) e retorna um token JWT."""
     try:
         data = request.get_json()
         if not data:

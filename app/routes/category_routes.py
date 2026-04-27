@@ -14,6 +14,7 @@ category_bp = Blueprint("category", __name__, url_prefix="/categorias")
 # ---------------------------------------------------------------------------
 @category_bp.route("/", methods=["GET"])
 def listar_categorias():
+    """Lista todas as categorias de produtos disponíveis."""
     try:
         categorias = get_all_categories()
         return jsonify(categorias), 200
@@ -25,6 +26,7 @@ def listar_categorias():
 # ---------------------------------------------------------------------------
 @category_bp.route("/<int:id_categoria>", methods=["GET"])
 def buscar_categoria_por_id(id_categoria):
+    """Busca os detalhes de uma categoria específica pelo seu ID."""
     try:
         categoria = get_category_by_id(id_categoria)
 

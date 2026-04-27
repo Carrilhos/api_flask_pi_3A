@@ -5,6 +5,7 @@ from app.repositories.pedido_repository import cancelar_pedido
 from app.repositories.pedido_repository import find_pedido_by_id
 
 def criar_pedido_service(current_user_id, id_endereco, itens_front):
+    """Processa os itens solicitados, valida o estoque, calcula o valor total, captura o snapshot do endereço e cria o pedido."""
     # Valida o endereço
     endereco = find_endereco_by_id(id_endereco)
     if not endereco or endereco["id_usuario"] != current_user_id:
@@ -51,6 +52,7 @@ def criar_pedido_service(current_user_id, id_endereco, itens_front):
     return criar_pedido(current_user_id, valor_total, snaps, itens_processados)
 
 def cancelar_pedido_service(current_user_id, id_pedido):
+    """Cancela um pedido existente (se estiver pendente ou aprovado), validando a posse e realizando o estorno do estoque."""
     # Busca o pedido para garantir que existe
     pedido = find_pedido_by_id(id_pedido)
 

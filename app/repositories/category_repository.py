@@ -1,6 +1,7 @@
 from app.database import get_connection
 
 def find_all_categories():
+  """Busca todas as categorias de produtos disponíveis no banco."""
   conn = get_connection()
   cursor = conn.cursor()
 
@@ -31,6 +32,7 @@ def find_all_categories():
   return categories
 
 def find_category_by_id(id_category):
+  """Busca uma categoria específica pelo seu ID."""
   conn = get_connection()
   cursor = conn.cursor()
 

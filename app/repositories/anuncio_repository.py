@@ -2,6 +2,7 @@ from app.database import get_connection
 
 
 def find_all_anuncios():
+    """Busca todos os anúncios cadastrados, juntamente com a URL da sua imagem principal."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -50,6 +51,7 @@ def find_all_anuncios():
 
 
 def find_anuncios_by_vendedor(id_vendedor):
+    """Busca os anúncios vinculados a um vendedor específico."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -99,6 +101,7 @@ def find_anuncios_by_vendedor(id_vendedor):
     return anuncios
 
 def find_anuncio_by_id(id_anuncio):
+    """Busca um anúncio pelo seu ID, retornando também a imagem principal associada."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -144,6 +147,7 @@ def find_anuncio_by_id(id_anuncio):
 
 
 def create_anuncio(id_vendedor, id_produto, titulo, descricao, preco, estoque):
+    """Insere um novo anúncio no banco de dados e retorna os dados recém-criados."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -191,6 +195,7 @@ def create_anuncio(id_vendedor, id_produto, titulo, descricao, preco, estoque):
 
 
 def update_anuncio(id_anuncio, id_produto, titulo, descricao, preco, estoque):
+    """Atualiza os dados gerais de um anúncio específico."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -239,6 +244,7 @@ def update_anuncio(id_anuncio, id_produto, titulo, descricao, preco, estoque):
 
 
 def update_estoque_anuncio(id_anuncio, estoque):
+    """Atualiza especificamente a quantidade em estoque de um anúncio."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -275,6 +281,7 @@ def update_estoque_anuncio(id_anuncio, estoque):
 
 
 def delete_anuncio(id_anuncio):
+    """Remove primeiro as imagens associadas e depois deleta o anúncio (cascata manual em transação)."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -304,6 +311,7 @@ def delete_anuncio(id_anuncio):
         conn.close()
 
 def get_dados_basicos_anuncio_produto(id_anuncio):
+    """Recupera informações combinadas do anúncio e os dados primários do produto atrelado."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -320,6 +328,7 @@ def get_dados_basicos_anuncio_produto(id_anuncio):
     return row
 
 def get_imagens_por_anuncio(id_anuncio):
+    """Busca as imagens vinculadas a um anúncio."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT url, principal FROM produto_imagem WHERE id_anuncio = %s", (id_anuncio,))
@@ -329,6 +338,7 @@ def get_imagens_por_anuncio(id_anuncio):
     return rows
 
 def get_atributos_por_produto(id_produto):
+    """Busca a ficha técnica de um produto com os valores dinâmicos dos atributos."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""

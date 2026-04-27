@@ -9,6 +9,7 @@ def inserir_imagem(
     ordem=0,
     principal=False
 ):
+    """Cadastra o registro de uma nova imagem vinculada a um anúncio e um produto."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -41,6 +42,7 @@ def inserir_imagem(
 
 
 def find_by_produto(id_produto):
+    """Busca todas as imagens atreladas a um determinado produto."""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -68,6 +70,7 @@ def find_by_produto(id_produto):
 
 
 def definir_principal(id_produto, id_imagem):
+    """Altera a flag 'principal' para a imagem escolhida e remove da antiga (em transação)."""
     conn = get_connection()
     cursor = conn.cursor()
 

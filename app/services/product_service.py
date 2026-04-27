@@ -6,6 +6,7 @@ from app.repositories.produto_repository import (
 )
 
 def get_all_produtos():
+    """Recupera todos os produtos e anexa dinamicamente seus respectivos atributos."""
     # Busca todos os produtos
     produtos = find_all_produtos()
     
@@ -28,6 +29,7 @@ def get_all_produtos():
     return produtos
 
 def get_produto_by_id(id_produto):
+    """Busca um produto específico pelo ID e estrutura seus atributos anexados."""
     produto = find_produto_by_id(id_produto)
 
     if not produto:

@@ -8,6 +8,7 @@ load_dotenv()
 BUCKET = "imagens"
 
 def upload_imagem_supabase(imagem, id_anuncio, index):
+    """Realiza o upload de uma imagem para o bucket do Supabase e retorna a sua URL pública."""
     if not imagem:
         return None
 
